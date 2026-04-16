@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trade Setup Checklist</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  :root{
+    --bg:#ffffff;--bg2:#f5f5f3;--bg3:#eeede8;
+    --text:#1a1a1a;--text2:#666660;--text3:#999993;
+    --border:rgba(0,0,0,0.12);--border2:rgba(0,0,0,0.22);
+    --radius:8px;--radius-lg:12px;
+    --buy:#1D9E75;--buy-bg:#E1F5EE;--buy-text:#085041;
+    --sell:#D85A30;--sell-bg:#FAECE7;--sell-text:#4A1B0C;
+    --warn:#EF9F27;--warn-bg:#FAEEDA;--warn-text:#633806;
+  }
+  @media(prefers-color-scheme:dark){
+    :root{
+      --bg:#1e1e1c;--bg2:#2a2a28;--bg3:#333330;
+      --text:#f0efe8;--text2:#aaa99f;--text3:#77766e;
+      --border:rgba(255,255,255,0.1);--border2:rgba(255,255,255,0.2);
+      --buy:#1D9E75;--buy-bg:#04342C;--buy-text:#9FE1CB;
+      --sell:#D85A30;--sell-bg:#4A1B0C;--sell-text:#F5C4B3;
+      --warn:#EF9F27;--warn-bg:#412402;--warn-text:#FAC775;
+    }
+  }
+  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg3);color:var(--text);min-height:100vh;padding:1rem}
+  .wrap{max-width:680px;margin:0 auto}
+  .app-header{background:var(--bg);border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:1rem 1.25rem;margin-bottom:1rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
+  .app-title{font-size:18px;font-weight:500}
+  .ratio-wrap{flex:1;min-width:200px;max-width:300px}
+  .ratio-labels{display:flex;justify-content:space-between;margin-bottom:4px}
+  .ratio-buy{font-size:13px;font-weight:500;color:var(--buy)}
+  .ratio-sell{font-size:13px;font-weight:500;color:var(--sell)}
+  .ratio-bar{height:10px;border-radius:6px;background:var(--bg3);overflow:hidden;border:0.5px solid var(--border)}
+  .ratio-fill{height:100%;transition:all 0.4s;background:linear-gradient(90deg,var(--buy) var(--buy-pct,50%),var(--sell) 0)}
+  .ratio-numbers{display:flex;justify-content:space-between;margin-top:3px}
+  .rn{font-size:12px;color:var(--text3)}
+  .step-card{background:var(--bg);border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:1rem 1.25rem;margin-bottom:10px;transition:border-color 0.2s,opacity 0.2s}
+  .step-card.active{border:1.5px solid var(--buy)}
+  .step-card.done{opacity:0.65}
+  .step-header{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+  .step-num{width:26px;height:26px;border-radius:50%;background:var(--bg2);border:0.5px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:500;color:var(--text2);flex-shrink:0}
+  .step-num.active{background:var(--buy-bg);border-color:var(--buy);color:var(--buy-text)}
+  .step-num.done{background:var(--buy);color:#fff;border-color:var(--buy)}
+  .step-title{font-size:14px;font-weight:500}
+  .btn-row{display:flex;flex-wrap:wrap;gap:8px}
+  .btn{padding:6px 14px;border-radius:var(--radius);border:0.5px solid var(--border2);background:transparent;cursor:pointer;font-size:13px;color:var(--text);transition:all 0.15s;font-family:inherit}
+  .btn:hover{background:var(--bg2)}
+  .btn.sel-buy{background:var(--buy-bg);border-color:var(--buy);color:var(--buy-text);font-weight:500}
+  .btn.sel-sell{background:var(--sell-bg);border-color:var(--sell);color:var(--sell-text);font-weight:500}
+  .btn.sel-neutral{background:var(--bg2);border-color:var(--border2);font-weight:500}
+  .info{margin-top:10px;padding:8px 12px;border-radius:var(--radius);background:var(--bg2);border-left:3px solid var(--buy);font-size:13px;color:var(--text2);line-height:1.5}
+  .info.warn{border-left-color:var(--warn);background:var(--warn-bg);color:var(--warn-text)}
+  .info.sell{border-left-color:var(--sell);background:var(--sell-bg);color:var(--sell-text)}
+  .sub-q{margin-top:12px}
+  .sub-label{font-size:13px;color:var(--text2);margin-bottom:6px}
+  .checklist{margin-top:8px;display:flex;flex-direction:column;gap:8px}
+  .check-item{display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;user-select:none}
+  .check-item input[type=checkbox]{width:16px;height:16px;accent-color:var(--buy);cursor:pointer;flex-shrink:0}
+  .badge{display:inline-block;padding:3px 10px;border-radius:var(--radius);font-size:12px;font-weight:500;margin-top:8px}
+  .badge-buy{background:var(--buy-bg);color:var(--buy-text)}
+  .badge-sell{background:var(--sell-bg);color:var(--sell-text)}
+  .badge-both{background:var(--bg2);color:var(--text2)}
+  .result-card{background:var(--bg);border:1.5px solid var(--buy);border-radius:var(--radius-lg);padding:1.25rem;margin-top:1rem;display:none}
+  .result-title{font-size:16px;font-weight:500;margin-bottom:12px}
+  .score-row{display:flex;gap:10px;margin-bottom:12px;flex-wrap:wrap}
+  .score-box{flex:1;min-width:90px;padding:10px;border-radius:var(--radius);background:var(--bg2);text-align:center}
+  .sc-label{font-size:11px;color:var(--text2);margin-bottom:4px}
+  .sc-val{font-size:22px;font-weight:500}
+  .sc-buy{color:var(--buy)}
+  .sc-sell{color:var(--sell)}
+  .verdict{padding:10px 14px;border-radius:var(--radius);font-size:13px;line-height:1.6;font-weight:500}
+  .verdict.strong{background:var(--buy-bg);color:var(--buy-text)}
+  .verdict.moderate{background:var(--warn-bg);color:var(--warn-text)}
+  .verdict.weak{background:var(--sell-bg);color:var(--sell-text)}
+  .trade-rules{margin-top:12px;padding:10px 14px;border-radius:var(--radius);background:var(--bg2);border:0.5px solid var(--border)}
+  .trade-rules-title{font-size:12px;font-weight:500;color:var(--text2);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.04em}
+  .rule{font-size:12px;color:var(--text2);padding:4px 0;border-bottom:0.5px solid var(--border);line-height:1.5}
+  .rule:last-child{border-bottom:none}
+  .reset-btn{margin-top:12px;padding:7px 18px;border-radius:var(--radius);border:0.5px solid var(--border2);background:transparent;cursor:pointer;font-size:13px;color:var(--text2);font-family:inherit}
+  .reset-btn:hover{background:var(--bg2)}
+  .progress-bar{height:4px;background:var(--bg3);border-radius:2px;margin-bottom:1rem;overflow:hidden}
+  .progress-fill{height:100%;background:var(--buy);border-radius:2px;transition:width 0.4s}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="app-header">
+    <div class="app-title">Trade setup checklist</div>
+    <div class="ratio-wrap">
+      <div class="ratio-labels"><span class="ratio-buy" id="buyLbl">BUY 50%</span><span class="ratio-sell" id="sellLbl">SELL 50%</span></div>
+      <div class="ratio-bar"><div class="ratio-fill" id="ratioFill"></div></div>
+      <div class="ratio-numbers"><span class="rn" id="buyPts">0 pts</span><span class="rn" id="sellPts">0 pts</span></div>
+    </div>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+  <div id="steps"></div>
+  <div class="result-card" id="resultCard">
+    <div class="result-title">Setup summary</div>
+    <div class="score-row">
+      <div class="score-box"><div class="sc-label">Buy score</div><div class="sc-val sc-buy" id="resBuy">0%</div></div>
+      <div class="score-box"><div class="sc-label">Sell score</div><div class="sc-val sc-sell" id="resSell">0%</div></div>
+      <div class="score-box"><div class="sc-label">Steps done</div><div class="sc-val" id="resConf" style="color:var(--text)">7/7</div></div>
+    </div>
+    <div class="verdict" id="resVerdict"></div>
+    <div class="trade-rules" id="tradeRules"></div>
+    <button class="reset-btn" onclick="resetAll()">Start new analysis</button>
+  </div>
+</div>
+
+<script>
+const S = {
+  buy:0,sell:0,
+  s1:null,s2:null,s3:null,s4:null,
+  s5align:null,s5imbal:null,s5aoi:null,s5str:null,s5weak:[],
+  s6:null,s7choch:null,s7close:null
+};
+
+function pct(buy,sell){const t=buy+sell||1;return Math.round((buy/t)*100);}
+
+function updateRatio(){
+  const bp=pct(S.buy,S.sell);
+  const sp=100-bp;
+  document.getElementById('ratioFill').style.cssText='--buy-pct:'+bp+'%';
+  document.getElementById('buyLbl').textContent='BUY '+bp+'%';
+  document.getElementById('sellLbl').textContent='SELL '+sp+'%';
+  document.getElementById('buyPts').textContent=S.buy+' pts';
+  document.getElementById('sellPts').textContent=S.sell+' pts';
+}
+
+function updateProgress(){
+  const steps=[S.s1,S.s2,S.s3,S.s4,step5Done()?'done':null,S.s6,S.s7choch==='yes'&&S.s7close==='yes'?'done':null];
+  const done=steps.filter(Boolean).length;
+  document.getElementById('progressFill').style.width=Math.round((done/7)*100)+'%';
+}
+
+function getFavored(){
+  if(!S.s1||!S.s2) return null;
+  if(S.s2==='pullback') return S.s1==='buy'?'sell':'buy';
+  return S.s1;
+}
+
+function step5Done(){
+  if(S.s5align==='yes') return true;
+  if(S.s5align==='no'&&S.s5imbal==='yes'){
+    if(S.s5aoi==='extreme') return S.s5weak.length===3;
+    if(S.s5aoi==='topbottom') return S.s5str==='strong';
+  }
+  return false;
+}
+
+function renderAll(){
+  const c=document.getElementById('steps');
+  c.innerHTML='';
+  renderStep1(c);
+  if(S.s1) renderStep2(c);
+  if(S.s2) renderStep3(c);
+  if(S.s3) renderStep4(c);
+  if(S.s4) renderStep5(c);
+  if(step5Done()) renderStep6(c);
+  if(S.s6==='yes') renderStep7(c);
+  if(S.s7choch==='yes'&&S.s7close==='yes') showResult();
+  else document.getElementById('resultCard').style.display='none';
+  updateRatio();
+  updateProgress();
+}
+
+function mkCard(num,title,active,done){
+  const d=document.createElement('div');
+  d.className='step-card'+(active?' active':done?' done':'');
+  const h=document.createElement('div');h.className='step-header';
+  const n=document.createElement('div');
+  n.className='step-num'+(active?' active':done?' done':'');
+  n.textContent=num;
+  const t=document.createElement('div');t.className='step-title';t.textContent=title;
+  h.appendChild(n);h.appendChild(t);d.appendChild(h);
+  return d;
+}
+
+function mkBtns(opts,selected,cb){
+  const row=document.createElement('div');row.className='btn-row';
+  opts.forEach(o=>{
+    const b=document.createElement('button');
+    let cls='btn';
+    if(selected===o.val) cls+=' '+(o.type==='buy'?'sel-buy':o.type==='sell'?'sel-sell':'sel-neutral');
+    b.className=cls;b.textContent=o.label;b.onclick=()=>cb(o.val);
+    row.appendChild(b);
+  });
+  return row;
+}
+
+function mkInfo(txt,type=''){
+  const d=document.createElement('div');
+  d.className='info'+(type?' '+type:'');
+  d.textContent=txt;
+  return d;
+}
+
+function mkSub(label){
+  const d=document.createElement('div');d.className='sub-q';
+  const l=document.createElement('div');l.className='sub-label';l.textContent=label;
+  d.appendChild(l);return d;
+}
+
+function clearFrom(key){
+  const order=['s2','s3','s4','s5align','s5imbal','s5aoi','s5str','s5weak','s6','s7choch','s7close'];
+  let clearing=false;
+  order.forEach(k=>{
+    if(k===key) clearing=true;
+    if(clearing){
+      if(k==='s5weak') S[k]=[];
+      else S[k]=null;
+    }
+  });
+}
+
+function renderStep1(c){
+  const done=S.s1!==null;
+  const d=mkCard(1,'4H swing direction',!done,done);
+  d.appendChild(mkBtns([{val:'buy',label:'Bullish',type:'buy'},{val:'sell',label:'Bearish',type:'sell'}],S.s1,(v)=>{
+    const prev=S.s1;
+    if(prev==='buy') S.buy-=20; else if(prev==='sell') S.sell-=20;
+    S.s1=v;clearFrom('s2');
+    if(v==='buy') S.buy+=20; else S.sell+=20;
+    renderAll();
+  }));
+  c.appendChild(d);
+}
+
+function renderStep2(c){
+  const done=S.s2!==null;
+  const fav=getFavored();
+  const d=mkCard(2,'15min phase',!done,done);
+  d.appendChild(mkBtns([{val:'breakout',label:'Breakout',type:'neutral'},{val:'pullback',label:'Pullback',type:'neutral'},{val:'continuation',label:'Continuation',type:'neutral'}],S.s2,(v)=>{
+    const prevFav=getFavored();
+    if(prevFav==='buy') S.buy-=15; else if(prevFav==='sell') S.sell-=15;
+    if(S.s2==='continuation'){const opp=S.s1==='buy'?'sell':'buy';if(opp==='buy') S.buy-=5; else S.sell-=5;}
+    S.s2=v;clearFrom('s3');
+    const newFav=getFavored();
+    if(newFav==='buy') S.buy+=15; else if(newFav==='sell') S.sell+=15;
+    if(v==='continuation'){const opp=S.s1==='buy'?'sell':'buy';if(opp==='buy') S.buy+=5; else S.sell+=5;}
+    renderAll();
+  }));
+  if(S.s2){
+    const msgs={breakout:'4H direction favored — trade with the momentum.',pullback:'Opposite of 4H favored — look for counter-trend entries.',continuation:'4H direction favored. Opposite still has potential.'};
+    const badge=document.createElement('span');
+    badge.className='badge '+(fav==='buy'?'badge-buy':fav==='sell'?'badge-sell':'badge-both');
+    badge.textContent=fav?'Favored: '+(fav==='buy'?'BUY':'SELL'):'Both directions have potential';
+    d.appendChild(badge);
+    d.appendChild(mkInfo(msgs[S.s2]));
+  }
+  c.appendChild(d);
+}
+
+function renderStep3(c){
+  const done=S.s3!==null;
+  const d=mkCard(3,'15min BOS direction',!done,done);
+  d.appendChild(mkBtns([{val:'buy',label:'Bullish BOS',type:'buy'},{val:'sell',label:'Bearish BOS',type:'sell'}],S.s3,(v)=>{
+    const prev=S.s3;
+    if(prev==='buy') S.buy-=20; else if(prev==='sell') S.sell-=20;
+    S.s3=v;clearFrom('s4');
+    if(v==='buy') S.buy+=20; else S.sell+=20;
+    renderAll();
+  }));
+  c.appendChild(d);
+}
+
+function renderStep4(c){
+  const done=S.s4!==null;
+  const d=mkCard(4,'Area of interest',!done,done);
+  d.appendChild(mkBtns([{val:'extreme',label:'Extreme zone',type:'neutral'},{val:'middle',label:'Middle zone',type:'neutral'},{val:'topbottom',label:'Top / Bottom zone',type:'neutral'}],S.s4,(v)=>{
+    const prev=S.s4;const td=S.s3;
+    if(prev==='extreme'||prev==='topbottom'){if(td==='buy') S.buy-=10; else if(td==='sell') S.sell-=10;}
+    else if(prev==='middle'){S.buy-=5;S.sell-=5;}
+    S.s4=v;clearFrom('s5align');
+    if(v==='extreme'||v==='topbottom'){if(td==='buy') S.buy+=10; else if(td==='sell') S.sell+=10;}
+    else{S.buy+=5;S.sell+=5;}
+    renderAll();
+  }));
+  if(S.s4){
+    const m={extreme:'High priority zone — most significant level.',middle:'Moderate zone — wait for full alignment.',topbottom:'Reversal potential — requires strong 5min structure if not aligned.'};
+    d.appendChild(mkInfo(m[S.s4]));
+  }
+  c.appendChild(d);
+}
+
+function renderStep5(c){
+  const done=step5Done();
+  const d=mkCard(5,'5min structure',!done,done);
+  const sub1=mkSub('Is 5min aligned with 15min BOS?');
+  sub1.appendChild(mkBtns([{val:'yes',label:'Yes, aligned',type:'buy'},{val:'no',label:'No, not aligned',type:'sell'}],S.s5align,(v)=>{
+    const prev=S.s5align;const td=S.s3;
+    if(prev==='yes'){if(td==='buy') S.buy-=20; else S.sell-=20;}
+    if(prev==='no'&&step5Done()){if(td==='buy') S.buy-=10; else S.sell-=10;}
+    S.s5align=v;S.s5imbal=null;S.s5aoi=null;S.s5str=null;S.s5weak=[];clearFrom('s6');
+    if(v==='yes'){if(td==='buy') S.buy+=20; else S.sell+=20;}
+    renderAll();
+  }));
+  d.appendChild(sub1);
+
+  if(S.s5align==='yes'){
+    d.appendChild(mkInfo('Aligned. Mark 5min zone and proceed to liquidity sweep.'));
+  }
+
+  if(S.s5align==='no'){
+    const sub2=mkSub('Is there a huge imbalance on 15min?');
+    sub2.appendChild(mkBtns([{val:'yes',label:'Yes, imbalance present',type:'neutral'},{val:'no',label:'No imbalance',type:'neutral'}],S.s5imbal,(v)=>{
+      S.s5imbal=v;S.s5aoi=null;S.s5str=null;S.s5weak=[];clearFrom('s6');
+      renderAll();
+    }));
+    d.appendChild(sub2);
+
+    if(S.s5imbal==='no') d.appendChild(mkInfo('No imbalance and no alignment — wait for 5min to align with 15min.','warn'));
+
+    if(S.s5imbal==='yes'){
+      const sub3=mkSub('AOI position (with imbalance):');
+      sub3.appendChild(mkBtns([{val:'extreme',label:'Extreme',type:'neutral'},{val:'middle',label:'Middle',type:'neutral'},{val:'topbottom',label:'Top / Bottom',type:'neutral'}],S.s5aoi,(v)=>{
+        S.s5aoi=v;S.s5str=null;S.s5weak=[];clearFrom('s6');
+        renderAll();
+      }));
+      d.appendChild(sub3);
+
+      if(S.s5aoi==='middle') d.appendChild(mkInfo('Middle zone — wait for 5min to align before proceeding.','warn'));
+
+      if(S.s5aoi==='topbottom'){
+        const sub4=mkSub('5min structure strength:');
+        sub4.appendChild(mkBtns([{val:'strong',label:'Strong',type:'buy'},{val:'weak',label:'Weak',type:'sell'}],S.s5str,(v)=>{
+          const td=S.s3;
+          const wasDone=step5Done();
+          S.s5str=v;clearFrom('s6');
+          const isDone=step5Done();
+          if(!wasDone&&isDone){if(td==='buy') S.buy+=10; else S.sell+=10;}
+          if(wasDone&&!isDone){if(td==='buy') S.buy-=10; else S.sell-=10;}
+          renderAll();
+        }));
+        if(S.s5str==='strong') sub4.appendChild(mkInfo('Strong: successful BOS, holding zones, impulsive moves. Mark 5min zone and proceed.'));
+        if(S.s5str==='weak') sub4.appendChild(mkInfo('Weak structure at top/bottom without alignment — wait for alignment.','warn'));
+        d.appendChild(sub4);
+      }
+
+      if(S.s5aoi==='extreme'){
+        const sub5=mkSub('Confirm all 3 weak structure conditions:');
+        const checks=[
+          {id:'c1',label:'Multiple BOS failures on 5min'},
+          {id:'c2',label:'Leading demand/supply zone failing to hold'},
+          {id:'c3',label:'1min CHoCH against 5min direction confirmed'}
+        ];
+        const cl=document.createElement('div');cl.className='checklist';
+        checks.forEach(ch=>{
+          const lbl=document.createElement('label');lbl.className='check-item';
+          const cb=document.createElement('input');cb.type='checkbox';cb.checked=S.s5weak.includes(ch.id);
+          cb.onchange=(e)=>{
+            const td=S.s3;const wasDone=step5Done();
+            if(e.target.checked) S.s5weak.push(ch.id); else S.s5weak=S.s5weak.filter(x=>x!==ch.id);
+            const isDone=step5Done();
+            if(!wasDone&&isDone){if(td==='buy') S.buy+=10; else S.sell+=10;}
+            if(wasDone&&!isDone){if(td==='buy') S.buy-=10; else S.sell-=10;}
+            clearFrom('s6');renderAll();
+          };
+          lbl.appendChild(cb);lbl.appendChild(document.createTextNode(ch.label));cl.appendChild(lbl);
+        });
+        sub5.appendChild(cl);
+        if(S.s5weak.length===3) sub5.appendChild(mkInfo('All 3 confirmed — extreme zone override valid. Proceed.'));
+        else sub5.appendChild(mkInfo('All 3 conditions must be present to override 5min at extreme zone.','warn'));
+        d.appendChild(sub5);
+      }
+    }
+  }
+  c.appendChild(d);
+}
+
+function renderStep6(c){
+  const done=S.s6!==null;
+  const d=mkCard(6,'Liquidity sweep',!done,done);
+  d.appendChild(mkBtns([{val:'yes',label:'Sweep present',type:'buy'},{val:'no',label:'No sweep yet',type:'sell'}],S.s6,(v)=>{
+    const prev=S.s6;const td=S.s3;
+    if(prev==='yes'){if(td==='buy') S.buy-=10; else S.sell-=10;}
+    S.s6=v;S.s7choch=null;S.s7close=null;
+    if(v==='yes'){if(td==='buy') S.buy+=10; else S.sell+=10;}
+    renderAll();
+  }));
+  if(S.s6==='no') d.appendChild(mkInfo('No sweep yet — setup incomplete. Wait for liquidity to be taken.','warn'));
+  if(S.s6==='yes') d.appendChild(mkInfo('Sweep confirmed. Proceed to 1min entry confirmation.'));
+  c.appendChild(d);
+}
+
+function renderStep7(c){
+  const done=S.s7choch==='yes'&&S.s7close==='yes';
+  const d=mkCard(7,'1min entry confirmation',!done,done);
+  const sub1=mkSub('Has 1min CHoCH occurred?');
+  sub1.appendChild(mkBtns([{val:'yes',label:'Yes, CHoCH confirmed',type:'buy'},{val:'no',label:'Not yet',type:'sell'}],S.s7choch,(v)=>{
+    const prev=S.s7choch;const td=S.s3;
+    if(prev==='yes'&&S.s7close==='yes'){if(td==='buy') S.buy-=5; else S.sell-=5;}
+    S.s7choch=v;S.s7close=null;
+    renderAll();
+  }));
+  d.appendChild(sub1);
+  if(S.s7choch==='no') d.appendChild(mkInfo('Wait for 1min CHoCH. No entry without it — no exceptions.','warn'));
+  if(S.s7choch==='yes'){
+    const sub2=mkSub('Has the entry candle closed?');
+    sub2.appendChild(mkBtns([{val:'yes',label:'Yes, candle closed',type:'buy'},{val:'no',label:'Not yet',type:'sell'}],S.s7close,(v)=>{
+      const td=S.s3;const prev=S.s7close;
+      if(prev==='yes'){if(td==='buy') S.buy-=5; else S.sell-=5;}
+      S.s7close=v;
+      if(v==='yes'){if(td==='buy') S.buy+=5; else S.sell+=5;}
+      renderAll();
+    }));
+    if(S.s7close==='no') d.appendChild(mkInfo('Wait for candle close — never enter on an open candle.','warn'));
+    if(S.s7close==='yes') d.appendChild(mkInfo('Entry confirmed. Open position calculator now.'));
+    d.appendChild(sub2);
+  }
+  c.appendChild(d);
+}
+
+function showResult(){
+  const rc=document.getElementById('resultCard');
+  rc.style.display='block';
+  const bp=pct(S.buy,S.sell);
+  const sp=100-bp;
+  document.getElementById('resBuy').textContent=bp+'%';
+  document.getElementById('resSell').textContent=sp+'%';
+  const dominant=S.buy>=S.sell?'BUY':'SELL';
+  const domPct=Math.max(bp,sp);
+  const v=document.getElementById('resVerdict');
+  if(domPct>=70){v.className='verdict strong';v.textContent='Strong '+dominant+' setup — '+domPct+'% confluence. All confirmations met. Check position size and execute.';}
+  else if(domPct>=55){v.className='verdict moderate';v.textContent='Moderate '+dominant+' bias — '+domPct+'% confluence. Setup qualifies but conviction is not at its peak. Trade carefully.';}
+  else{v.className='verdict weak';v.textContent='Low confluence — '+domPct+'%. Mixed signals across timeframes. Consider waiting for a cleaner setup.';}
+  const td=S.s3;
+  const rules=document.getElementById('tradeRules');
+  rules.innerHTML='<div class="trade-rules-title">Active trade rules</div>';
+  const ruleList=[
+    'SL: above/below 1min recent high/low before CHoCH',
+    'TP: next 15min supply/demand zone — minimum 2R',
+    'When price approaches TP and 1min CHoCH occurs: move SL to recent HL/LH',
+    'If 1min CHoCH + immediate BOS forms against you: exit the trade immediately',
+    dominant==='BUY'?'During breakout phase: never go against 5min bullish structure':'During breakout phase: never go against 5min bearish structure',
+    'Check previous session institutional zones before managing the trade'
+  ];
+  ruleList.forEach(r=>{
+    const div=document.createElement('div');div.className='rule';div.textContent=r;rules.appendChild(div);
+  });
+}
+
+function resetAll(){
+  Object.assign(S,{buy:0,sell:0,s1:null,s2:null,s3:null,s4:null,s5align:null,s5imbal:null,s5aoi:null,s5str:null,s5weak:[],s6:null,s7choch:null,s7close:null});
+  document.getElementById('resultCard').style.display='none';
+  renderAll();
+}
+
+renderAll();
+</script>
+</body>
+</html>
